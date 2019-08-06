@@ -119,8 +119,7 @@ const TodoCard: React.FC<ITodoCardProps & InjectedFormProps> = (props) => {
                     root: complete ? classes.completed : '',
                   }}
                 >
-                  {todo.get('title')}
-                  {
+                  {todo.get('title')} {
                     [
                       todo.get('value1'),
                       todo.get('value2'),
