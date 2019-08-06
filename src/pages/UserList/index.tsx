@@ -1,17 +1,13 @@
-import React from 'react';
-import { AnyAction, bindActionCreators, Dispatch } from 'redux';
+import React, { useState } from 'react';
+import { AnyAction, bindActionCreators, compose, Dispatch } from 'redux';
 import { IMatch } from '../../Interfaces';
 import { Map, Record, } from 'immutable';
 import { connect } from 'react-redux';
-import { Button, Grid, Typography } from '@material-ui/core';
+import { Button, FormControl, FormHelperText, Grid, TextField, Typography } from '@material-ui/core';
 import { AddUserAction, DeleteUserAction, IUser, UserFactory, } from '../../actions/default';
 import { makeSelectUsers, } from '../../selectors/default';
 import { createStructuredSelector } from 'reselect';
 import { Link } from 'react-router-dom';
-import { InjectedFormProps } from "redux-form";
-import { Field, Form, reduxForm } from "redux-form/immutable";
-
-import FieldTextField from "../../components/FieldTextField";
 
 interface IUserListComponentProps {
   match: IMatch,
@@ -23,127 +19,132 @@ interface IUserListProps extends IUserListComponentProps {
   users: Map<number, Record<IUser>>;
 }
 
-const addUser = (user: Record<IUser>) => new AddUserAction({user});
-const deleteUser = (userId: number) => new DeleteUserAction({userId});
+const addUser = (user: Record<IUser>) => new AddUserAction({ user });
+const deleteUser = (userId: number) => new DeleteUserAction({ userId });
 
-const required = (value: string) => (value || typeof value === 'number' ? undefined : 'Required')
-
-
-const UserList: React.FC<IUserListProps & InjectedFormProps> = (props) => {
+const UserList: React.FC<IUserListProps> = (props) => {
+  const [textInput, setTextInput] = useState('');
+  const [error, setError] = useState('');
 
   const {
     addUser,
     deleteUser,
     users,
-
-    handleSubmit
   } = props;
 
   return (
-    <Form onSubmit={handleSubmit((values) => {
-      addUser(
-        UserFactory(values),
-      );
-    })}>
+    <Grid
+      container={true}
+      direction='column'
+      wrap='nowrap'
+    >
+      <Grid
+        item={true}
+      >
+        <Typography
+          variant='h5'
+        >
+          Users
+        </Typography>
+      </Grid>
       <Grid
         container={true}
+        item={true}
         direction='column'
         wrap='nowrap'
       >
         <Grid
           item={true}
-        >
-          <Typography
-            variant='h5'
-          >
-            Users
-          </Typography>
-        </Grid>
-        <Grid
           container={true}
-          item={true}
-          direction='column'
-          wrap='nowrap'
+          alignItems='center'
         >
-
           <Grid
             item={true}
-            container={true}
-            alignItems='center'
           >
-            <Grid
-              item={true}
-            >
-              <Field
-                TextFieldProps={{
-                  label: 'name',
+            <FormControl error={error != ''}>
+              <TextField
+                label='name'
+                value={textInput}
+                onChange={(e) => {
+                  setTextInput(e.target.value);
+                  setError('');
                 }}
-                name='name'
-                component={FieldTextField}
-                validate={required}
               />
-            </Grid>
-            <Grid
+              <FormHelperText>{error}</FormHelperText>
+            </FormControl>
+          </Grid>
+          <Grid
+            item={true}
+          >
+            <Button
+              variant='outlined'
+              onClick={
+                () => {
+                  if ( textInput ) {
+                    addUser(
+                      UserFactory({
+                        name: textInput,
+                      }),
+                    );
+                    setTextInput('');
+                  } else {
+                    setError("Required");
+                  }
+                }
+              }
+            >
+              Add User
+            </Button>
+          </Grid>
+        </Grid>
+        {
+          users.map((user, userId) => {
+            return <Grid
+              spacing={1}
+              container={true}
+              key={userId}
               item={true}
             >
-              <Button
-                variant='outlined'
-                type="submit"
-              >
-                Add User
-              </Button>
-            </Grid>
-          </Grid>
-          {
-            users.map((user, userId) => {
-              return <Grid
-                spacing={1}
-                container={true}
-                key={userId}
+              <Grid
                 item={true}
               >
-                <Grid
-                  item={true}
+                <Typography>
+                  {userId}:
+                </Typography>
+              </Grid>
+              <Grid
+                item={true}
+              >
+                <Typography>
+                  {user.get('name')}
+                </Typography>
+              </Grid>
+              <Grid
+                item={true}
+              >
+                <Link
+                  to={`/todo/${userId}`}
                 >
                   <Typography>
-                    {userId}:
+                    todos
                   </Typography>
-                </Grid>
-                <Grid
-                  item={true}
-                >
-                  <Typography>
-                    {user.get('name')}
-                  </Typography>
-                </Grid>
-                <Grid
-                  item={true}
-                >
-                  <Link
-                    to={`/todo/${userId}`}
-                  >
-                    <Typography>
-                      todos
-                    </Typography>
-                  </Link>
-                </Grid>
-                <Grid
-                  item={true}
-                >
-                  <Button
-                    variant='outlined'
-                    onClick={() => deleteUser(userId)}>
-                    Delete User
-                  </Button>
+                </Link>
+              </Grid>
+              <Grid
+                item={true}
+              >
+                <Button
+                  variant='outlined'
+                  onClick={() => deleteUser(userId)}>
+                  Delete User
+                </Button>
 
-                </Grid>
-              </Grid>;
-            }).valueSeq().toArray()
-          }
-        </Grid>
+              </Grid>
+            </Grid>;
+          }).valueSeq().toArray()
+        }
       </Grid>
-    </Form>
-
+    </Grid>
   );
 }
 
@@ -153,12 +154,11 @@ const mapStateToProps = createStructuredSelector({
 
 const mapDispatchToProps = (dispatch: Dispatch<AnyAction>) => {
   return {
-    ...bindActionCreators({addUser, deleteUser}, dispatch)
+    ...bindActionCreators({ addUser, deleteUser }, dispatch)
   };
 };
 
 
-export default connect(mapStateToProps, mapDispatchToProps)(
-  reduxForm({
-    form: "user"
-  })(UserList as any)) as any;
+export default compose<React.ComponentClass<IUserListComponentProps>>(
+  connect(mapStateToProps, mapDispatchToProps)
+)(UserList);
