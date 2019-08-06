@@ -1,49 +1,29 @@
 import React from 'react';
-import {
-  compose,
-  AnyAction,
-  Dispatch,
-} from 'redux';
-import {
-  makeStyles,
-} from '@material-ui/core/styles';
+import { AnyAction, compose, Dispatch, } from 'redux';
+import { makeStyles, } from '@material-ui/core/styles';
 import Card from '@material-ui/core/Card';
 import CardActionArea from '@material-ui/core/CardActionArea';
 import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
+import { List, Record, } from 'immutable';
 import {
-  Record,
-  List,
-} from 'immutable';
-import {
-  ITodo,
-  CompletedTodoAction,
   AddSubTodoAction,
-  SubTodoFactory,
-  ISubTodo,
-  DeleteTodoAction,
+  CompletedTodoAction,
   CompleteSubTodoAction,
+  DeleteTodoAction,
+  ISubTodo,
+  ITodo,
   SelectTodoAction,
+  SubTodoFactory,
 } from '../actions/default';
-import {
-  Checkbox,
-  Typography,
-  Button,
-  Grid,
-} from '@material-ui/core';
-import {
-  connect,
-} from 'react-redux';
-import {
-  createStructuredSelector,
-} from 'reselect';
-import {
-  makeSelectSubTodosForTodo, makeSelectSelectedTodoId,
-} from '../selectors/default';
+import { Button, Checkbox, Grid, Typography, } from '@material-ui/core';
+import { connect, } from 'react-redux';
+import { createStructuredSelector, } from 'reselect';
+import { makeSelectSelectedTodoId, makeSelectSubTodosForTodo, } from '../selectors/default';
 import classnames from 'classnames';
-import { reduxForm, Field, Form } from 'redux-form';
+import { Field, Form, reduxForm } from 'redux-form/immutable';
+import { InjectedFormProps } from "redux-form";
 import FieldTextField from './FieldTextField';
-import { InjectedFormProps } from 'redux-form';
 
 interface ITodoCardComponentProps {
   todo: Record<ITodo>;
@@ -106,10 +86,10 @@ const TodoCard: React.FC<ITodoCardProps & InjectedFormProps> = (props) => {
         <CardActionArea>
           <CardContent
             classes={{
-              root: classnames({[classes.cardSelected]: selectedTodoId === todoId})
+              root: classnames({ [classes.cardSelected]: selectedTodoId === todoId })
             }}
             onClick={() => {
-              dispatch(new SelectTodoAction({todoId}))
+              dispatch(new SelectTodoAction({ todoId }))
             }}
           >
             <Grid
@@ -139,7 +119,22 @@ const TodoCard: React.FC<ITodoCardProps & InjectedFormProps> = (props) => {
                     root: complete ? classes.completed : '',
                   }}
                 >
-                  {todo.get('title')} {`${todo.get('value1')};${todo.get('value2')};${todo.get('value3')};${todo.get('value4')}`}}
+                  {todo.get('title')}
+                  {
+                    [
+                      todo.get('value1'),
+                      todo.get('value2'),
+                      todo.get('value3'),
+                      todo.get('value4')
+                    ]
+                      .reduce((acc, value) => {
+                        if ( value ) {
+                          acc.push(value);
+                        }
+                        return acc;
+                      }, [] as Array<string>)
+                      .join(";")
+                  }
                 </Typography>
               </Grid>
               <Grid
@@ -190,8 +185,8 @@ const TodoCard: React.FC<ITodoCardProps & InjectedFormProps> = (props) => {
         </CardActionArea>
         <CardActions>
           <Button
-            size="small" 
-            color="primary" 
+            size="small"
+            color="primary"
             //@ts-ignore   
             onClick={() => {
               dispatch(new DeleteTodoAction({ todo }));
@@ -206,8 +201,8 @@ const TodoCard: React.FC<ITodoCardProps & InjectedFormProps> = (props) => {
             name='title'
             component={FieldTextField}
           />
-          <Button 
-            size="small" 
+          <Button
+            size="small"
             color="primary"
             type="submit"
           >
