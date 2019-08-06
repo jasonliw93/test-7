@@ -18,7 +18,7 @@
     "@types/uuid": "^3.4.5",
     "classnames": "2.2.6",
     "connected-react-router": "6.4.0",
-    "formik": "2.0.1-rc.4",
+    "formik": "^2.0.1-rc.12",
     "formik-material-ui": "^0.0.20",
     "history": "4.9.0",
     "immutable": "4.0.0-rc.12",
